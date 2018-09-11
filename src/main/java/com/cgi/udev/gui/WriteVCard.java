@@ -10,7 +10,10 @@ import java.text.SimpleDateFormat;
 
 public class WriteVCard {
 
-	public static void createVcard(VCard vcard,File file) {
+	public static void createVcard(VCard vcard, File file) throws IOException {
+		if (!file.exists()) {
+			throw new IOException("Le fichier n'existe pas");
+		}
 		try (Writer w = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")) {
 			w.write("BEGIN:VCARD\n");
 			w.write("VERSION:4.0\n");
@@ -22,7 +25,9 @@ public class WriteVCard {
 			String date = df.format(vcard.datenaissance);
 			w.write("BDAY:" + date + "\n");
 			w.write("END:VCARD\n");
-		} catch (IOException e) {
+		} catch (
+
+		IOException e) {
 			e.printStackTrace();
 		}
 	}

@@ -5,6 +5,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 
 import javax.swing.JButton;
@@ -13,6 +15,7 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -28,7 +31,7 @@ public class VCardPrompt extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = -6039434517728554927L;
-	
+
 	private JComboBox<String> civilite;
 	private JTextField prenom;
 	private JTextField nom;
@@ -69,7 +72,11 @@ public class VCardPrompt extends JFrame {
 		okButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				onSave();
+				try {
+					onSave();
+				} catch (IOException e1) {
+					JOptionPane.showMessageDialog(null, e1.getMessage(), "Champs requis vide" , JOptionPane.WARNING_MESSAGE);
+				}
 			}
 		});
 		JButton cancelButton = new JButton("Annuler");
@@ -83,27 +90,35 @@ public class VCardPrompt extends JFrame {
 		this.pack();
 		this.setResizable(false);
 	}
-	
-	  private void onSave() {
-		  VCard vcard = new VCard();
-		  vcard.civilite = civilite.getSelectedItem().toString();
-		  vcard.prenom = prenom.getText();
-		  vcard.nom =nom.getText();
-		  vcard.datenaissance = (Date) datenaissance.getModel().getValue();
-		  vcard.email = email.getText();
-		  vcard.numtel = numtel.getText();
-		  vcard.addresse = addresse.getText();
-		  vcard.cp = cp.getText();
-		  vcard.ville = ville.getText();
-			    JFileChooser fileChooser = new JFileChooser();
-			    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-			    fileChooser.setMultiSelectionEnabled(false);
-			    fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Fichiers Vcard (vcf)", "vcf"));
-			    int choix = fileChooser.showOpenDialog(this);
-			    if (choix == JFileChooser.APPROVE_OPTION) {
-			      WriteVCard.createVcard(vcard, fileChooser.getSelectedFile());
-			    }
-	  }
+
+	private void onSave() throws IOException {
+		VCard vcard = new VCard();
+		if (prenom.getText().isEmpty() | nom.getText().isEmpty() | civilite.getSelectedIndex() <= 0) {
+			throw new IOException("Les champs Prenom ,Nom et civilité son obligatoires !");
+		}
+		vcard.civilite = civilite.getSelectedItem().toString();
+		vcard.prenom = prenom.getText();
+		vcard.nom = nom.getText();
+		vcard.datenaissance = (Date) datenaissance.getModel().getValue();
+		vcard.email = email.getText();
+		vcard.numtel = numtel.getText();
+		vcard.addresse = addresse.getText();
+		vcard.cp = cp.getText();
+		vcard.ville = ville.getText();
+		WriteVCard.createVcard(vcard, vCardChooser());
+	}
+
+	private File vCardChooser() {
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		fileChooser.setMultiSelectionEnabled(false);
+		fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Fichiers Vcard (vcf)", "vcf"));
+		int choix = fileChooser.showOpenDialog(this);
+		if (choix == JFileChooser.APPROVE_OPTION) {
+			return fileChooser.getSelectedFile();
+		}
+		return null;
+	}
 
 	private void onCancel() {
 		// on cache la fenêtre
